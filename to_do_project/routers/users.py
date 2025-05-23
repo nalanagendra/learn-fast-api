@@ -30,6 +30,9 @@ class ChangePasswordRequest(BaseModel):
   old_password: str = Field(min_length=4, max_length=20)
   new_password: str = Field(min_length=4, max_length=20)
   
+class ChangePhoneNumber(BaseModel):
+  phone_number: str = Field(min_length=12, max_length=20)
+  
 
 
 @router.get('/me', status_code=status.HTTP_200_OK)
@@ -45,6 +48,7 @@ async def get_user(user: user_dependency, db: db_dependency):
     "last_name": user_model.last_name,
     "email": user_model.email,
     "role": user_model.role,
+    "phone_number": user_model.phone_number,
   }
 
 @router.post('/change_password', status_code=status.HTTP_204_NO_CONTENT)
@@ -58,5 +62,17 @@ async def update_password(user: user_dependency, db: db_dependency, request: Cha
     raise HTTPException(status_code=401, detail='Error on password change')
   
   user_model.hashed_password = bcrypt_context.hash(request.new_password)
+  db.add(user_model)
+  db.commit()
+
+
+@router.post('/phone_number', status_code=status.HTTP_204_NO_CONTENT)
+async def update_phone_number(user: user_dependency, db: db_dependency, request: ChangePhoneNumber):
+  if user is None:
+    raise HTTPException(status_code=401, detail='Authentication failed')
+  
+  user_model = db.query(Users).filter(Users.id == user.get('user_id')).first()
+  
+  user_model.phone_number = request.phone_number
   db.add(user_model)
   db.commit()

@@ -1,2 +1,4 @@
 fast-api-1/fastapienv
 to_do_project/fastapienv
+__pycache__/
+*.py[cod]
